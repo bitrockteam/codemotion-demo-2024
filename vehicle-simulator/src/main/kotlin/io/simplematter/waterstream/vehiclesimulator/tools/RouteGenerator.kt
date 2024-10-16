@@ -13,11 +13,7 @@ class RouteGenerator(private val routingUrl: String) {
 
     private suspend fun getRouteFromService(start: Point, end: Point): List<Point> {
 
-        val parameters = listOf(
-            "profile" to "driving-hgv",
-            "coordinates" to "${start.toQueryParam()}|${end.toQueryParam()}",
-            "geometry_format" to "geojson"
-        )
+        val parameters = listOf("start" to start.toQueryParam(),"end" to end.toQueryParam())
 
         try {
             val (_: Request, _: Response, result: String) = Fuel.get(
@@ -26,7 +22,7 @@ class RouteGenerator(private val routingUrl: String) {
             ).awaitStringResponse(Charsets.UTF_8)
             VehicleSimCounters.routeRequests.inc()
 
-            val routes = JsonParser.parseString(result).asJsonObject.getAsJsonArray("routes")
+            val routes = JsonParser.parseString(result).asJsonObject.getAsJsonArray("features")
             val coordinates = routes[0].asJsonObject.getAsJsonObject("geometry").getAsJsonArray("coordinates")
             val route = coordinates.map { it ->
                 Point(it.asJsonArray[1].asDouble, it.asJsonArray[0].asDouble)
@@ -41,6 +37,14 @@ class RouteGenerator(private val routingUrl: String) {
         var candidate = listOf<Point>()
         while (candidate.isEmpty()) {
             val startingPoint = CoordinateGenerator.nextPoint()
+            candidate = nextRoute(startingPoint)
+        }
+        return candidate
+    }
+
+    suspend fun generateRoute(startingPoint: Point): List<Point> {
+        var candidate = listOf<Point>()
+        while (candidate.isEmpty()) {
             candidate = nextRoute(startingPoint)
         }
         return candidate

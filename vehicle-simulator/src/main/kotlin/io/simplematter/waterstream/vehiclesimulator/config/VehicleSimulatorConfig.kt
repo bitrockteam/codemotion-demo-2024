@@ -28,6 +28,7 @@ data class VehiclesConfig(
 data class MqttConfig(
   val host: String,
   val port: Int,
+  val tlsEnabled: Boolean,
   val fleetClientId: String,
   val topicPrefix: String,
   val username: String?,

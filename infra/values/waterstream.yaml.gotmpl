@@ -1,0 +1,9 @@
+configMap:
+  enabled: true
+  files:
+    config:
+      plain-users.txt: |
+        fleet-demo={{ .Values | get "waterstream.user.password" "password" }}
+      waterstream.license: {{ .Values | get "waterstream.license" "MISSING_LICENSE" | toYaml | indent 6 }}
+      tls.key: {{ .Values | get "waterstream.tls.key" "MISSING_KEY" | toYaml | indent 6 }}
+      tls.crt: {{ .Values | get "waterstream.tls.crt" "MISSING_CERT" | toYaml | indent 6 }}

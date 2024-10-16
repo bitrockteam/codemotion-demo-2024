@@ -29,6 +29,8 @@ class VehicleVerticle : CoroutineVerticle() {
         data class VehicleConfig(
             val id: String,
             val plate: String,
+            val modelId: Int,
+            val color: String,
             val visible: Boolean,
             val mqttConfig: MqttConfig,
             val routingUrl: String
@@ -45,6 +47,7 @@ class VehicleVerticle : CoroutineVerticle() {
     private var timer: Long = 0
     private val refreshTimeMillis: Long = 500
     private var waitCycles = 0
+    private val initialSpeed = 35.0
 
     private val routeGenerator by lazy { RouteGenerator(routingUrl) }
     private var currentRoute = listOf<Point>()
@@ -54,17 +57,18 @@ class VehicleVerticle : CoroutineVerticle() {
 
     private val id by lazy { vehicleConfig.id }
     private val plate by lazy { vehicleConfig.plate }
+    private val modelId by lazy { vehicleConfig.modelId }
+    private val color by lazy { vehicleConfig.color }
     private val tickEvent by lazy { "Vehicle.$plate.Ticked" }
 
     private val topicPrefix by lazy { vehicleConfig.mqttConfig.topicPrefix }
-
-    private var wayBack = false
 
     private val mqttConnect by lazy {
         MqttConnect(
             vertx,
             vehicleConfig.mqttConfig.host,
             vehicleConfig.mqttConfig.port,
+            vehicleConfig.mqttConfig.tlsEnabled,
             "$plate $deploymentID",
             vehicleConfig.mqttConfig.username,
             vehicleConfig.mqttConfig.password
@@ -85,10 +89,12 @@ class VehicleVerticle : CoroutineVerticle() {
 
             vehicle = Vehicle(
                 plate,
+                modelId,
+                color,
                 current = assignedRoute.first(),
                 waypoint = currentRoute.first(),
                 updateTimestamp = Instant.now().toEpochMilli(),
-                speed = Random.nextDouble(60.0, 90.0),
+                speed = initialSpeed,
                 visible = vehicleConfig.visible,
                 id = id
             )
@@ -96,6 +102,7 @@ class VehicleVerticle : CoroutineVerticle() {
 
             vertx.eventBus().publish(FleetEvent.VehicleCreated, vehicle.toJson())
             VehicleSimCounters.vehiclesCreated.inc()
+            publishVehicleCreateToMqtt()
             VehicleSimCounters.vehiclesCurrent.inc()
 
             timer = vertx.setPeriodic(refreshTimeMillis) {
@@ -108,7 +115,7 @@ class VehicleVerticle : CoroutineVerticle() {
 
             mqttConnect.getConnectedMqttClient()
         } catch (e: Exception) {
-            log.info("${plate} will be removed because of initialization error")
+            log.warn("$plate will be removed because of initialization error, caused by ${e.message}")
             VehicleSimCounters.vehicleInitErrors.inc()
             undeployVerticle()
         }
@@ -123,7 +130,7 @@ class VehicleVerticle : CoroutineVerticle() {
                     val now = Instant.now().toEpochMilli()
                     val elapsed = now - vehicle.updateTimestamp
 
-                    vehicle = vehicle.updatePosition(elapsed)
+                    vehicle = vehicle.updatePosition(elapsed).updateSpeed()
                     vertx.eventBus().publish(FleetEvent.VehicleUpdated, vehicle.toJson())
                     VehicleSimCounters.vehicleUpdates.inc()
                     publishVehicleUpdateToMqtt()
@@ -132,33 +139,31 @@ class VehicleVerticle : CoroutineVerticle() {
                     if (currentRoute.isEmpty()) {
                         // this pauses the vehicle for a while before starting a new route
                         waitCycles = Random.nextInt(100)
-                        if (wayBack) {
-                            currentRoute = assignedRoute.asReversed()
-                        } else {
-                            currentRoute = assignedRoute
-                        }
-                        wayBack = !wayBack
+                        assignedRoute = routeGenerator.generateRoute(vehicle.waypoint)
+                        currentRoute = assignedRoute.drop(1)
                     }
 
                     val newWaypoint = currentRoute.first()
                     val distanceKm = vehicle.current.distance(newWaypoint)
                     if (distanceKm > 50)
                         Vehicle.log.warn(
-                            "Jump too far: {} from {} to {}, by {} km. \nCurrent route: {}\nAssigned route: {}",
+                            "Jump too far: {} from {} to {}, by {} km.",
                             plate,
                             vehicle.current,
                             newWaypoint,
-                            distanceKm,
-                            currentRoute,
-                            assignedRoute
+                            distanceKm
                         )
-                    vehicle = vehicle.setWaypoint(newWaypoint)
+                    vehicle = vehicle.setWaypoint(newWaypoint).updateSpeed()
                     currentRoute = currentRoute.drop(1)
                     vertx.eventBus().publish(FleetEvent.VehicleUpdated, vehicle.toJson())
                     VehicleSimCounters.vehicleUpdates.inc()
                 }
             } else {
                 waitCycles--
+                vehicle = vehicle.updatePosition(0).setSpeed(0.0)
+                vertx.eventBus().publish(FleetEvent.VehicleUpdated, vehicle.toJson())
+                VehicleSimCounters.vehicleUpdates.inc()
+                publishVehicleUpdateToMqtt()
             }
         }
     }
@@ -183,6 +188,18 @@ class VehicleVerticle : CoroutineVerticle() {
         undeployRequested = true
     }
 
+    private suspend fun publishVehicleCreateToMqtt() {
+        val body = Buffer.buffer(vehicle.toJson().toString())
+        mqttConnect.getConnectedMqttClient().publish(
+            "${topicPrefix}vehicle_create/${vehicle.plate}",
+            body,
+            MqttQoS.AT_LEAST_ONCE,
+            false,
+            false
+        )
+        VehicleSimCounters.mqttMessagesSent.inc()
+    }
+
     private suspend fun publishVehicleUpdateToMqtt() {
         val body = Buffer.buffer(vehicle.toJson().toString())
         mqttConnect.getConnectedMqttClient().publish(
@@ -193,39 +210,16 @@ class VehicleVerticle : CoroutineVerticle() {
             false
         )
         VehicleSimCounters.mqttMessagesSent.inc()
-
-        //TBD consider using ksqlDB to extract visible vehicles
-        if(vehicle.visible) {
-            mqttConnect.getConnectedMqttClient().publish(
-                "${topicPrefix}visible_vehicle_updates/${vehicle.plate}",
-                body,
-                MqttQoS.AT_MOST_ONCE,
-                false,
-                false
-            )
-            VehicleSimCounters.mqttMessagesSent.inc()
-        }
     }
 
     private suspend fun publishVehicleRemoveToMqtt() {
         mqttConnect.getConnectedMqttClient().publish(
             "${topicPrefix}vehicle_updates/${vehicle.plate}",
             Buffer.buffer(),
-            MqttQoS.AT_MOST_ONCE,
+            MqttQoS.AT_LEAST_ONCE,
             false,
             false
         )
         VehicleSimCounters.mqttMessagesSent.inc()
-
-        if(vehicle.visible) {
-            mqttConnect.getConnectedMqttClient().publish(
-                "${topicPrefix}visible_vehicle_updates/${vehicle.plate}",
-                Buffer.buffer(),
-                MqttQoS.AT_MOST_ONCE,
-                false,
-                false
-            )
-            VehicleSimCounters.mqttMessagesSent.inc()
-        }
     }
 }

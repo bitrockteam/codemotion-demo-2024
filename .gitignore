@@ -15,6 +15,10 @@ build
 tmp
 
 .env
+.venv
+
+kubeconfig
+infra/environments/default/secrets.yaml
 
 ### Vert.x ###
 .vertx/
@@ -202,5 +206,7 @@ nbdist/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+.ipynb_checkpoints
 
 

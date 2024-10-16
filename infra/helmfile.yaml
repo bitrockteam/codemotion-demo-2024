@@ -1,0 +1,199 @@
+---
+helmDefaults:
+  createNamespace: true
+  historyMax: 5
+
+environments:
+  default:
+    values:
+      - environments/default/values.yaml
+{{ if isFile "environments/default/secrets.yaml" }}
+      - environments/default/secrets.yaml
+{{ end }}
+    kubeContext: codemotion2024
+
+repositories:
+  - name: bedag
+    url: https://bedag.github.io/helm-charts/
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: stakater
+    url: https://stakater.github.io/stakater-charts
+  - name: confluentinc
+    url: https://packages.confluent.io/helm
+  - name: kafka-ui
+    url:  https://ui.charts.kafbat.io/
+  - name: cert-manager
+    url: https://charts.jetstack.io/
+  - name: cert-manager-crd
+    url: https://wiremind.github.io/wiremind-helm-charts
+  - name: flink
+    url: https://downloads.apache.org/flink/flink-kubernetes-operator-1.9.0/
+
+---
+releases:
+  - name: ingress-nginx
+    labels:
+      component: base
+    namespace: default
+    version: 4.11.1
+    chart: ingress-nginx/ingress-nginx
+    condition: ingress.enabled
+    values:
+      - values/nginx.yaml
+
+  - name: external-dns
+    labels:
+      component: base
+    namespace: default
+    version: 8.3.9
+    chart: oci://registry-1.docker.io/bitnamicharts/external-dns
+    condition: external-dns.enabled
+    values:
+      - values/external-dns.yaml.gotmpl
+
+  - name: cert-manager
+    labels:
+      component: base
+    namespace: default
+    version: 1.16.1
+    chart: cert-manager/cert-manager
+    condition: cert-manager.enabled
+
+  - name: cert-manager-crd
+    labels:
+      component: base
+    namespace: default
+    version: 1.16.1
+    chart: cert-manager-crd/cert-manager-crds
+    condition: cert-manager.enabled
+
+  - name: cert-manager-resources
+    labels:
+      component: base
+    namespace: default
+    chart: bedag/raw
+    version: 2.0.0
+    condition: cert-manager.enabled
+    needs:
+      - default/cert-manager-crd
+    values:
+      - values/cert-manager-resources.yaml.gotmpl
+
+  - name: confluent-operator
+    labels:
+      component: confluent
+    namespace: confluent
+    chart: confluentinc/confluent-for-kubernetes
+    condition: kafka.enabled
+
+  - name: kafka-platform
+    labels:
+      component: kafka
+    namespace: confluent
+    chart: bedag/raw
+    version: 2.0.0
+    condition: kafka.enabled
+    needs:
+      - confluent/confluent-operator
+    values:
+      - values/kafka.yaml
+
+  - name: kafka-topics
+    labels:
+      component: kafka
+    namespace: confluent
+    chart: bedag/raw
+    version: 2.0.0
+    condition: kafka.enabled
+    needs:
+      - confluent/kafka-platform
+    values:
+      - values/kafka-topics.yaml
+
+  - name: waterstream
+    labels:
+      component: waterstream
+    namespace: waterstream
+    chart: stakater/application
+    version: 2.3.2
+    condition: waterstream.enabled
+    needs:
+      - confluent/kafka-platform
+    values:
+      - values/waterstream.yaml
+      - values/waterstream.yaml.gotmpl
+
+  - name: flink
+    labels:
+      component: flink
+    namespace: flink
+    chart: flink/flink-kubernetes-operator
+    version: 1.9.0
+    condition: flink.enabled
+
+  - name: flink-jobs
+    labels:
+      component: flink
+    namespace: flink
+    chart: bedag/raw
+    version: 2.0.0
+    condition: flink.enabled
+    values:
+      - values/flink-jobs.yaml.gotmpl
+
+  - name: kafka-ui
+    labels:
+      component: kafka-ui
+    namespace: default
+    chart: kafka-ui/kafka-ui
+    version: 1.4.8
+    condition: kafka.enabled
+    needs:
+      - confluent/kafka-platform
+    values:
+      - values/kafka-ui.yaml.gotmpl
+
+  - name: openrouteservice
+    labels:
+      component: openrouteservice
+    namespace: demo
+    chart: stakater/application
+    version: 2.3.2
+    condition: openrouteservice.enabled
+    values:
+      - values/openrouteservice.yaml
+
+  - name: fleet-service
+    labels:
+      component: fleet-demo
+    namespace: demo
+    chart: stakater/application
+    version: 2.3.2
+    condition: fleet-demo.enabled
+    needs:
+      - demo/openrouteservice
+    values:
+      - values/fleet-service.yaml.gotmpl
+
+  - name: fleet-ui
+    labels:
+      component: fleet-demo
+    namespace: demo
+    chart: stakater/application
+    version: 2.3.2
+    condition: fleet-demo.enabled
+    needs:
+      - demo/fleet-service
+    values:
+      - values/fleet-ui.yaml
+
+  - name: llm-query
+    labels:
+      component: fleet-demo
+    namespace: demo
+    chart: stakater/application
+    version: 2.3.2
+    condition: fleet-demo.enabled
+    values:
+      - values/llm-query.yaml.gotmpl

@@ -1,0 +1,93 @@
+applicationName: llm-query
+
+deployment:
+  image:
+    repository: simoexpo/llm-query
+    tag: 0.0.1
+    pullPolicy: Always
+  ports:
+    - name: http
+      containerPort: 8080
+      protocol: TCP
+  containerSecurityContext:
+    readOnlyRootFilesystem: false
+    runAsNonRoot: false
+  resources:
+    limits:
+      cpu: 1
+      memory: 2048Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  env:
+    OPENAI_API_KEY:
+      value: {{ .Values | get "openai.api-key" "api-key" }}
+    DATABASE_HOST:
+      value: codemotion2024.postgres.database.azure.com
+    DATABASE_PORT:
+      value: "5432"
+    DATABASE_NAME:
+      value: fleet_demo
+    DATABASE_USER:
+      value: fleet_ro
+    DATABASE_PASSWORD:
+      value: {{ .Values | get "database.readonly-password" "password" }}
+    RB_PLATFORM_HOST:
+      value: platform.radicalbit.ai
+    RB_PLATFORM_PORT:
+      value: "443"
+    RB_PLATFORM_CLIENT_ID:
+      value: {{ .Values | get "radicalbit-platform.client-id" "cleintId" }}
+    RB_PLATFORM_CLIENT_SECRET:
+      value: {{ .Values | get "radicalbit-platform.client-secret" "clientSecret" }}
+    RB_PLATFORM_TENANT:
+      value: bitrockcodemotion2024
+    SQL_PREFIX:
+      value: |
+        You are an agent designed to interact with a SQL database.
+        Given an input question, create a syntactically correct PostgreSQL query to run, then look at the results of the query and return the answer.
+        Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most 5 results.
+        You can order the results by a relevant column to return the most interesting examples in the database.
+        You have access to tools for interacting with the database.
+        Only use the given tools. Only use the information returned by the tools to construct your final answer.
+        Unit measure are km/h for the speed and km for the distance.
+        You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
+        
+        DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
+
+        You have access to the following tables: {table_names}
+
+        If you find one or more plate on the input question always use them to extract data.
+        If you are asked to retrieve all the information about a vehicle you MUST use all the available table to extract all the possible information related to that vehicle.
+        Always use join to extract information about foreign key, do not display numeric id of the rows.
+        Pay attention when you are asked to retrieve information based on some place, note the difference between city, zone and full address.
+        When you need to filter on location try to prefer using like operator instead of strict equality to achieve better result.
+        If you need to filter on a proper noun, you must ALWAYS first look up the filter value using the "search_proper_nouns" tool unless you are filtering on a primary key!
+        If you have to filter by location try to convert the location name in english after you find the best candidate using the "search_proper_nouns" tool.
+        Do not try to guess at the proper name - use this function to find similar ones
+        
+        If the input question is not related to information available in the database table reply that you can only help with query about this project.
+
+service:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: http
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  tls:
+    - secretName: codemotion2024-key-pair
+      hosts:
+        - codemotion2024.bitrock.it
+  hosts:
+    - host: codemotion2024.bitrock.it
+      paths:
+        - path: /llm-query/(.+)
+          pathType: Prefix
+          serviceName: llm-query
+          servicePort: http

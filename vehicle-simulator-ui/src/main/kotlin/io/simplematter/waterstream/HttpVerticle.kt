@@ -34,13 +34,16 @@ class HttpVerticle : CoroutineVerticle() {
 
     router.get().handler { ctx: RoutingContext ->
       val data = JsonObject()
-        .put("messageCount", config.messageCountPanelAddress)
         .put("mqttHost", config.mqttHost)
         .put("mqttPort", config.mqttPort)
         .put("mqttUseSsl", config.mqttUseSsl)
         .put("mqttClientPrefix", config.mqttClientPrefix)
-        .put("mqttVisibleVehiclesTopicPrefix", config.mqttVisibleVehiclesTopicPrefix)
+        .put("mqttVehiclesTopicPrefix", config.mqttVehiclesTopicPrefix)
         .put("mqttDirectionStatsTopicPrefix", config.mqttDirectionStatsTopicPrefix)
+        .put("mapboxToken", config.mapboxToken)
+        .put("querySQLServiceUrl", config.querySQLServiceUrl)
+        .put("queryDocumentServiceUrl", config.queryDocumentServiceUrl)
+        .put("nVisibleVehicle", config.nVisibleVehicle)
 
       engine.render(data, "static/html/index.html"
       ) { res: AsyncResult<Buffer?> ->

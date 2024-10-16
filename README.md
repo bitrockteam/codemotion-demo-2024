@@ -1,68 +1,24 @@
-Waterstream Fleet Demo
+Codemotion 2024 Fleet Demo
 ======================
 
-Demo project for MQTT + Kafka integration. See https://fleetdemo.waterstream.io for 
-this demo running with [Waterstream](https://waterstream.io) - Kafka-native MQTT broker.
+Demo project for the Codemotion 2024 talk, forked and inspired by [Waterstream Demo](https://fleetdemo.waterstream.io/). See https://codemotion2024.bitrock.it to access the demo.
+
+Tools used:
+- [Kubernetes](https://kubernetes.io/) - open source system for automating deployment, scaling, and management of containerized applications.
+- [Waterstream](https://waterstream.io) - Kafka-native MQTT broker
+- [Radicalbit](https://radicalbit.ai) - Your ready-to-use MLOps platform for Machine Learning.
+- [Flink](https://flink.apache.org/) - framework and distributed processing engine for stateful computations over unbounded and bounded data streams.
+- [Confluent Kafka](https://www.confluent.io/) - The Data Streaming Platform, deployed with Kubernetes operator.
+- [PostgreSQL](https://www.postgresql.org/) - the World's Most Advanced Open Source Relational Database.
+- [Kafbat UI](https://github.com/kafbat/kafka-ui) - Versatile, fast and lightweight web UI for managing Apache Kafka clusters.
+- [Openrouteservice](https://github.com/GIScience/openrouteservice) - A highly customizable, performant routing service written in Java.
+
 
 Trucks are moving along the randomly assigned routes, reporting their location and nearest waypoint
-to the MQTT broker. Small subset of the fleet is displayed on the map.  
-As the data ends up in Kafka [ksqlDB](https://ksqldb.io/) is used to build some aggregates - 
-in this example, a statistics of the vehicle moving directions. The results of aggregations
-are retrieved back through MQTT (remember - Waterstream is a Kafka-native MQTT broker)
-directly into UI using MQTT WebSocket transport.
+to the MQTT broker.
 
-## Pre-requisites
+Small subset of the fleet is displayed on the map. As the data ends up in Kafka Flink is used to build some aggregates.
 
-MQTT broker running with Kafka integration on (for example, https://waterstream.io),
-must be accessible from `mqttd-demo` network.
-
-Here are the mappings between Kafka and MQTT topic required for this demo to work:
-
-| Kafka topic                   | MQTT topic pattern                               | Direction |
-|-------------------------------|--------------------------------------------------|-----------|
-|waterstream_fleet_demo_visible | waterstream-fleet-demo/visible_vehicle_updates/# | M <-> K   |
-|DIRECTIONS_VEHICLES_MQTT       | waterstream-fleet-demo/direction-stats/#         | K -> M    |
-|waterstream_fleet_demo         | waterstream-fleet-demo/#                         | M -> K    |
-
-To properly protect the demo writing to all MQTT topics should be restricted to the authenticated
-users. Reading from `waterstream-fleet-demo/visible_vehicle_updates` and 
-`waterstream-fleet-demo/direction-stats/#` MQTT topics should be allowed for anonymous users. 
-
-## Open Route Service
-
-Get the source code from https://github.com/GIScience/openrouteservice/ into the sibling directory:
-
-    cd ..
-    git checkout git@github.com:GIScience/openrouteservice.git
-
-Back to this project, create data directory:
-
-    cd waterstream-fleet-demo
-    mkdir -p volumes/ors/data/
-    
-Download `italy-latest.osm.pbf` into the data directory from https://download.geofabrik.de/europe/italy.html:
-
-    ./download-data.sh
-    
-## Configure
-
-Copy `.env.example` to `.env`, specify username and password which `vehiclesimulator` will use
-to connect to MQTT broker. 
-
-## Run
-
-    ./build-route-service.sh
-    ./build-simulator.sh
-    docker-compose up -d
-    
-Keep in mind that `openrouteservice` may take a few hours to build the routes, during this time 
-the requests for retrieving the route will be failing.
-
-Open http://your.host:8082 in your browser to see the UI with the map over which the vehicles 
-are moving.
-    
-## Stop 
-
-    docker-compose down
-
-
+Some of the results of aggregations (like the direction statistics) are retrieved back through MQTT
+(remember - Waterstream is a Kafka-native MQTT broker) directly into UI using MQTT WebSocket transport.
+Other aggregation result are persisted on PostgreSQL and used to provide RAG feature to an langchain agent.

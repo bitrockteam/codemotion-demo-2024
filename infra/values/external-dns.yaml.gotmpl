@@ -1,0 +1,8 @@
+azure:
+  tenantId: {{ .Values | get "azure.tenantId" "tenantId" }}
+  subscriptionId: {{ .Values | get "azure.subscriptionId" "subscriptionId" }}
+  resourceGroup: codemotion2024
+  useManagedIdentityExtension: true
+  userAssignedIdentityID: {{ .Values | get "azure.userAssignedIdentityID" "userAssignedIdentityID" }}
+
+provider: azure
