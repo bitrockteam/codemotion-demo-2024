@@ -10,8 +10,11 @@ data class VehicleSimulatorUiConfig(
     val mqttPort: String,
     val mqttUseSsl: String,
     val mqttClientPrefix: String,
-    val mqttVisibleVehiclesTopicPrefix: String,
-    val mqttDirectionStatsTopicPrefix: String
+    val mqttVehiclesTopicPrefix: String,
+    val mqttDirectionStatsTopicPrefix: String,
+    val mapboxToken: String,
+    val querySQLServiceUrl: String,
+    val queryDocumentServiceUrl: String
 ) {
     companion object {
         fun load(): VehicleSimulatorUiConfig {

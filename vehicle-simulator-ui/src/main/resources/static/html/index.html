@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Waterstream Fleet Demo</title>
+    <title>Bitrock - Codemotion 2024 Demo</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
           integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
           crossorigin=""/>
-    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Muli" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Muli"/>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/emn178/chartjs-plugin-labels/src/chartjs-plugin-labels.js"></script>
@@ -52,23 +52,13 @@
         <div class="leaflet-sidebar-pane" id="home">
 
             <h1 class="leaflet-sidebar-header">
-                Waterstream Fleet Demo
+                Bitrock - Codemotion 2024 Demo
                 <span class="leaflet-sidebar-close"><i class="fas fa-caret-left"></i></span>
             </h1>
 
             <div class="reveal mb20">
-                <h3>Waterstream</h3>
-                <p>Waterstream is a fully fledged MQTT broker leveraging Kafka as its only storage and distribution
-                    engine.</p>
-                <p>Every MQTT message sent by a device is immediately available on Kafka topics without the need of any
-                    'man in the middle' connector. Likewise, devices can instantly receive produced messages on Kafka by
-                    subscribing to MQTT topics. Waterstream instances are stateless and therefore easy to scale out.
-                    This makes of Waterstream a light platform guaranteeing better throughput, reduced latency between
-                    Kafka and devices as well as less operational effort.</p>
-            </div>
-            <div class="reveal mb20">
                 <h3>The Fleet Demo</h3>
-                <p>In this demo, we simulate thousands of trucks driving around Italy, you can see fifteen of them
+                <p>In this demo, we simulate hundreds of trucks driving around Italy, you can see fifteen of them
                     on the map.</p>
                 <p>To follow one truck in its route, just click on its label. Sending MQTT messages
                     to the Waterstream, each truck continuously communicates its current position, the next way-point
@@ -76,115 +66,37 @@
                     the speed.</p>
             </div>
             <div class="reveal mb20">
-                <h3>No man in the middle</h3>
-                <p>There's no Kafka connector or other integration technology between Waterstream and Apache
-                    Kafka. As soon messages are received by Waterstream, they are available in Apache Kafka topics.</p>
-                <p>This allows to integrate quickly an IoT platform with operational systems or the data analytics
-                    without any other system in the middle.</p>
-                <p>Unlike available Kafka connectors, Waterstream allows bidirectional communication. Data written into
-                    topics can be pushed to devices. </p>
+                <h3>Query with LLM</h3>
+                <p>Ask something to our LLM query service:</p>
+                <form id="queryForm">
+                    <textarea id="queryText"
+                              style="font-family: 'Muli', sans-serif; width: 94%; height: 100px; resize: vertical; font-size: 18px;"
+                              onclick="this.focus();"></textarea><br><br>
+                    <button id="submitQueryButton" type="button"
+                            style="font-family: 'Muli', sans-serif; font-size: 14px;" onclick="sendQuerySql()">Ask LLM + SQL RAG
+                    </button>
+                </form>
+                <br>
+                <div id="querySqlResponse" class="mr15" style="font-family: 'Muli', sans-serif; font-size: 18px; min-height: 100px; max-height: 300px; overflow:auto; border: 1px solid #aaa; padding: 6px;"></div>
+                <br>
+                <button id="submitDocRagQueryButton" type="button"
+                        style="font-family: 'Muli', sans-serif; font-size: 14px;" onclick="sendQueryDocument()">Enhance with Document RAG
+                </button>
+                <br>
+                <br>
+                <div id="queryDocResponse" class="mr15" style="font-family: 'Muli', sans-serif; font-size: 18px; min-height: 100px; max-height: 300px; overflow:auto; border: 1px solid #aaa; padding: 6px;"></div>
             </div>
             <div class="reveal mb20">
-                <h3>Waterstream exposes MQTT topics and metrics with Prometeus</h3>
-                <p> It's easy to collect and show data coming from Waterstream with
-                    Grafana. In the following graph, we show the current message rate and how many messages were
-                    received so far by the Waterstream broker.</p>
-            </div>
-            <div class="reveal mb20">
-                <div class="text-center">
-                    <iframe th:src="${messageCount}" src="" width="380" height="250" frameborder="0"></iframe>
-                    <a class="btn btn-primary mt10 scroll-link" style="color: white;"
-                       target="_blank"
-                       href="https://dashboard.waterstream.io/d/ilHi2H-Zz/waterstream-fleet-demo?orgId=2&refresh=5s"
-                       data-id="contact">Open the dashboard</a>
-                </div>
-            </div>
-            <div class="reveal mb20">
-                <h3>Explore and manage data easily with kSQL</h3>
+                <h3>Fleet directions statistics</h3>
                 <p>Hence MQTT messages are stored directly in Kafka, you can aggregate them with any streaming
-                    technology
-                    like Kafka Streams or kSQL.</p>
+                    technology.</p>
                 <p>Below we built a real time graph that shows where trucks are headed using current position and
-                    waypoint. Graph data comes from a kSQL query
-                    that aggregates MQTT messages saved on a Kafka topic.
+                    waypoint. Graph data is processed by a Flink job that aggregates MQTT messages saved on a Kafka
+                    topic.
                 </p>
             </div>
             <div class="reveal mb20">
                 <canvas id="vehiclesStats" width="380" height="250"></canvas>
-            </div>
-            <div class="reveal mb20">
-                <p>The following are the ksqlDB queries we used to aggregate MQTT messages in real time.</p>
-                <code><pre>
-CREATE TABLE fleet_table(
-  plate STRING,
-  current STRUCT&lt;lat DOUBLE, lng DOUBLE&gt;,
-  waypoint STRUCT&lt;lat DOUBLE, lng DOUBLE&gt;,
-  speed DOUBLE,
-  distance DOUBLE,
-  updateTimestamp BIGINT) WITH
-  (KAFKA_TOPIC='waterstream_fleet_demo',
-    VALUE_FORMAT='JSON', KEY='plate');
-                </pre>
-                </code>
-            </div>
-            <div class="reveal mb10">
-                <code><pre>
-CREATE TABLE fleet_directions AS
-  SELECT plate,
-    CASE
-      WHEN
-        waypoint->lat >= current->lat AND
-        waypoint->lng >= current->lng
-        THEN 'NE'
-      WHEN
-        waypoint->lat >= current->lat AND
-        waypoint->lng < current->lng
-        THEN 'NW'
-      WHEN
-        waypoint->lat < current->lat AND
-        waypoint->lng <= current->lng
-        THEN 'SW'
-      ELSE 'SE'
-    END AS direction FROM fleet_table
-  EMIT CHANGES;
-                </pre>
-                </code>
-            </div>
-            <div class="reveal mb10">
-                <code><pre>
-CREATE TABLE directions_vehicles AS
-  SELECT direction, COUNT(*) as vehicles_count
-    FROM fleet_directions
-    GROUP BY direction EMIT CHANGES;
-</pre>
-                </code>
-            </div>
-            <div class="reveal mb10">
-                <p>And these ksqlDB queries represent the aggregates in MQTT-friendly format:</p>
-                <code><pre>
-CREATE STREAM directions_vehicles_stream
-  (direction STRING, vehicles_count INTEGER)
-  WITH (KAFKA_TOPIC='DIRECTIONS_VEHICLES',
-        VALUE_FORMAT='JSON', KEY='direction');
-</pre>
-                </code>
-            </div>
-            <div class="reveal mb10">
-                <code><pre>
-CREATE STREAM directions_vehicles_mqtt
-  AS SELECT direction,
-  vehicles_count,
-  'waterstream-fleet-demo/direction-stats/' +
-    direction AS mqtt_topic
-  FROM directions_vehicles_stream
-  PARTITION BY mqtt_topic;
-</pre>
-                </code>
-            </div>
-            <div class="reveal pb50">
-                <h3>Do you want to know more?</h3>
-                <p>Visit Waterstream product site at <a target="_blank"
-                                                        href="https://waterstream.io">https://waterstream.io</a> an learn how you can combine MQTT with Kafka, the standard de-facto streaming platform.</p>
             </div>
         </div>
         <div class="leaflet-sidebar-pane " id="info">
@@ -192,7 +104,7 @@ CREATE STREAM directions_vehicles_mqtt
                 Info
                 <span class="leaflet-sidebar-close"><i class="fas fa-info-circle"></i></span>
             </h1>
-            <p> Want to know more about Waterstream? Check out <a href="https://waterstream.io">https://waterstream.io!</a>
+            <p> Want to know more about Bitrock? Check out <a href="https://bitrock.it">https://bitrock.it</a>.
             </p>
         </div>
     </div>
@@ -221,14 +133,15 @@ CREATE STREAM directions_vehicles_mqtt
     let map = L.map('map');
     map.setView([41.9102415, 12.395915], 6);
 
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={token}', {
         maxZoom: 18,
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
             '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
             'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         id: 'mapbox/streets-v11',
         tileSize: 512,
-        zoomOffset: -1
+        zoomOffset: -1,
+        token: "[[${mapboxToken}]]"
     }).addTo(map);
 
     // create the sidebar instance and add it to the map
@@ -254,10 +167,10 @@ CREATE STREAM directions_vehicles_mqtt
             datasets: [{
                 data: [0, 0, 0, 0],
                 backgroundColor: [
-                    '#27B2FDFF',
-                    '#4E57FDFF',
-                    '#015E90FF',
-                    '#272B7DFF'
+                    '#FDC187FF',
+                    '#EB6400FF',
+                    '#FB8F2DFF',
+                    '#933400FF'
                 ],
                 borderColor: [
                     '#FFFFFFFF',
@@ -315,7 +228,7 @@ CREATE STREAM directions_vehicles_mqtt
             keepAtCenter: follow
         })
             .addTo(map)
-            .bindPopup("Truck " + vehicle.plate);
+            .bindPopup("Truck " + vehicle.plate + '<br />' + 'Speed: ' + Math.trunc(vehicle.speed) + ' km/h');
 
         if (plateToFollow == null) {
             plateToFollow = vehicle.plate
@@ -350,7 +263,7 @@ CREATE STREAM directions_vehicles_mqtt
     }
 
     const mqttClientId = "[[${mqttClientPrefix}]]" + Math.floor(Math.random() * 1000000)
-    const mqttClient = new Paho.MQTT.Client("[[${mqttHost}]]", [[${mqttPort}]], "", mqttClientId);
+    const mqttClient = new Paho.MQTT.Client("[[${mqttHost}]]", [[${mqttPort}]], "/mqtt", mqttClientId);
 
     function connectMqtt() {
         console.debug("connecting MQTT client..")
@@ -360,7 +273,7 @@ CREATE STREAM directions_vehicles_mqtt
             mqttVersion: 4,
             onSuccess: function () {
                 console.debug("MQTT client connected", mqttClientId)
-                mqttClient.subscribe("[[${mqttVisibleVehiclesTopicPrefix}]]#")
+                mqttClient.subscribe("[[${mqttVehiclesTopicPrefix}]]#")
                 mqttClient.subscribe("[[${mqttDirectionStatsTopicPrefix}]]#")
                 console.debug("Subscribed for MQTT topics")
             }
@@ -373,7 +286,7 @@ CREATE STREAM directions_vehicles_mqtt
         setTimeout(connectMqtt, 5000)
     }
     mqttClient.onMessageArrived = function (message) {
-        if (message.destinationName.startsWith("[[${mqttVisibleVehiclesTopicPrefix}]]")) {
+        if (message.destinationName.startsWith("[[${mqttVehiclesTopicPrefix}]]")) {
             //vehicle changes message
             if (message.payloadString.length == 0) {
                 //vehicle deleted
@@ -387,13 +300,13 @@ CREATE STREAM directions_vehicles_mqtt
                 try {
                     const vehicle = JSON.parse(message.payloadString)
                     // console.debug("vehicle moved", message.destinationName, vehicle)
-
                     let marker = registry.get(vehicle.plate);
                     if (marker == null) {
                         addMarker(vehicle)
                     }
                     marker = registry.get(vehicle.plate);
                     marker.setLatLng(L.latLng(vehicle.current.lat, vehicle.current.lng));
+                    marker.setPopupContent(`Truck <a style="cursor: pointer; color: blue; text-decoration: underline;"onclick="handlePopupClick('${vehicle.plate}')">` + vehicle.plate + '</a><br />' + 'Speed: ' + Math.trunc(vehicle.speed) + ' km/h');
                 } catch (e) {
                     console.warn("Failed to create/update vehicle", e)
                 }
@@ -401,7 +314,7 @@ CREATE STREAM directions_vehicles_mqtt
         } else if (message.destinationName.startsWith("[[${mqttDirectionStatsTopicPrefix}]]")) {
             const stats = JSON.parse(message.payloadString)
             console.debug("statistics received", stats)
-            updateVehicleStats(stats.DIRECTION, stats.VEHICLES_COUNT)
+            updateVehicleStats(stats.direction, stats.vehicles_count)
         }
     }
 
@@ -420,13 +333,85 @@ CREATE STREAM directions_vehicles_mqtt
     })
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+    function handlePopupClick(plate) {
+        document.getElementById('queryText').value = `Show all information about truck with plate ${plate}`;
+        sendQuerySql();
+    }
+</script>
+
+<script>
+    function sendQuerySql() {
+        const messageContent = document.getElementById('queryText').value;
+
+        if (messageContent.length > 0) {
+            const submitQueryButton = document.getElementById('submitQueryButton');
+            const submitDocRagQueryButton = document.getElementById('submitDocRagQueryButton');
+            submitQueryButton.disabled = true;
+            submitDocRagQueryButton.disabled = true;
+            document.getElementById('querySqlResponse').innerHTML = 'Processing...';
+            document.getElementById('queryDocResponse').innerHTML = '';
+            fetch("[[${querySQLServiceUrl}]]", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({query: messageContent})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('querySqlResponse').innerHTML = marked.parse(data.text);
+                })
+                .catch((error) => {
+                    document.getElementById('querySqlResponse').innerHTML = 'Error while processing response';
+                })
+                .finally(() => {
+                    submitQueryButton.disabled = false;
+                    submitDocRagQueryButton.disabled = false;
+                });
+        }
+    }
+
+    function sendQueryDocument() {
+        const messageContent = document.getElementById('querySqlResponse').innerHTML;
+
+        if (messageContent.length > 0) {
+            const submitQueryButton = document.getElementById('submitQueryButton');
+            const submitDocRagQueryButton = document.getElementById('submitDocRagQueryButton');
+            submitQueryButton.disabled = true;
+            submitDocRagQueryButton.disabled = true;
+            document.getElementById('queryDocResponse').innerHTML = 'Processing...';
+            fetch("[[${queryDocumentServiceUrl}]]", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({query: messageContent})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('queryDocResponse').innerHTML = marked.parse(data.text);
+                })
+                .catch((error) => {
+                    document.getElementById('queryDocResponse').innerHTML = 'Error while processing response';
+                })
+                .finally(() => {
+                    submitQueryButton.disabled = false;
+                    submitDocRagQueryButton.disabled = false;
+                });
+        }
+    }
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js"></script>
 <script>
     window.cookieconsent.initialise({
         container: document.getElementById("cookieconsent"),
         palette: {
-            popup: {background: "#015E90"},
-            button: {background: "#0067FF"},
+            popup: {background: "#FB8F2D"},
+            button: {background: "#EB6400"},
         },
         revokable: false,
         onStatusChange: function (status) {
@@ -435,7 +420,7 @@ CREATE STREAM directions_vehicles_mqtt
         },
         "position": "bottom-right",
         "theme": "classic",
-        "domain": "https://fleetdemo.waterstream.io/",
+        "domain": "https://codemotion2024.bitrock.it/",
         "secure": true,
         "content": {
             "header": 'Cookies used on the website!',

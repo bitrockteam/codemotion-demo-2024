@@ -1,0 +1,169 @@
+applicationName: waterstream
+
+deployment:
+  image:
+    repository: simplematter/waterstream-kafka
+    tag: 1.4.31
+    pullPolicy: IfNotPresent
+  ports:
+    - name: mqtt
+      containerPort: 8883
+      protocol: TCP
+    - name: mqttws
+      containerPort: 8893
+      protocol: TCP
+    - name: metrics
+      containerPort: 1884
+      protocol: TCP
+    - name: streams-app
+      containerPort: 1882
+      protocol: TCP
+  securityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+  containerSecurityContext:
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  resources:
+    limits:
+      cpu: 1
+      memory: 2048Mi
+    requests:
+      cpu: 250m
+      memory: 1028Mi
+  env:
+    KAFKA_STREAMS_APP_SERVER_HOST:
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: status.podIP
+    KAFKA_BOOTSTRAP_SERVERS:
+      value: "kafka.confluent.svc.cluster.local:9092"
+    COROUTINES_THREADS:
+      value: "16"
+    KAFKA_TRANSACTIONAL_ID:
+      value: ""
+    SSL_ENABLED:
+      value: "true"
+    SSL_KEY_PATH:
+      value: /etc/waterstream/tls.key
+    SSL_CERT_PATH:
+      value: /etc/waterstream/tls.crt
+    MQTT_PORT:
+      value: "8883"
+    MQTT_WS_PORT:
+      value: "8893"
+    MONITORING_PORT:
+      value: "1884"
+    MONITORING_INCLUDE_JAVA_METRICS:
+      value: "true"
+    MAX_QUEUED_INCOMING_MESSAGES:
+      value: "10000"
+    KAFKA_MESSAGES_DEFAULT_TOPIC:
+      value: mqtt_messages
+    AUTHENTICATION_REQUIRED:
+      value: "false"
+    AUTHENTICATION_METHOD_PLAIN_USERS_FILE_ENABLED:
+      value: "true"
+    KAFKA_MQTT_MAPPINGS_PATH:
+      value: /etc/waterstream/mqtt-mappings.conf
+    USERS_FILE_PATH:
+      value: /etc/waterstream/plain-users.txt
+    AUTHORIZATION_RULES_PATH:
+      value: /etc/waterstream/authorization_rules.csv
+    WATERSTREAM_LOGBACK_CONFIG:
+      value: /etc/waterstream/logback.xml
+    MONITORING_EXTENDED_METRICS:
+      value: "false"
+    WATERSTREAM_LICENSE_LOCATION:
+      value: /etc/waterstream/waterstream.license
+  volumeMounts:
+    config-files:
+      mountPath: /etc/waterstream
+    tmp:
+      mountPath: /tmp
+      subPath: tmp
+  volumes:
+    config-files:
+      configMap:
+        name: waterstream-config
+    tmp:
+      emptyDir:
+        sizeLimit: 1024Mi
+  startupProbe:
+    httpGet:
+      path: /health
+      port: metrics
+      scheme: HTTP
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 30
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: metrics
+      scheme: HTTP
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: metrics
+      scheme: HTTP
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+
+service:
+  ports:
+    - name: mqtt
+      protocol: TCP
+      port: 8883
+      targetPort: mqtt
+    - name: mqttws
+      protocol: TCP
+      port: 8893
+      targetPort: mqttws
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-ipv4: 172.213.251.22
+
+configMap:
+  enabled: true
+  files:
+    config:
+      authorization_rules.csv: |
+        Topic,Action,Condition,Outcome
+        waterstream-fleet-demo/visible_vehicle_updates/#,SUBSCRIBE,,ALLOW
+        waterstream-fleet-demo/direction-stats/#,SUBSCRIBE,,ALLOW
+        waterstream-fleet-demo/#,ALL,username=fleet-demo,ALLOW
+      logback.xml: |
+        <?xml version="1.0" encoding="UTF-8"?>
+        <configuration>
+        
+          <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+              <Pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+            </layout>
+          </appender>
+        
+          <logger name="io.waterstream" level="TRACE"/>
+          <logger name="io.waterstream.mqtt.g" level="DEBUG"/>
+          <!--    <logger name="io.waterstream.kafka" level="TRACE"/>-->
+          <!--    <logger name="io.waterstream.kafka" level="DEBUG"/>-->
+        
+          <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+          </root>
+        </configuration>
+      mqtt-mappings.conf: |
+        rules = [{"defaultPlaceholder":"","kafkaKey":"{plate}","kafkaTopic":"waterstream_fleet_demo","mqttTopic":"waterstream-fleet-demo/vehicle_updates/{plate}"},{"defaultPlaceholder":"","kafkaKey":"{plate}","kafkaTopic":"waterstream_fleet_visible_demo","mqttTopic":"waterstream-fleet-demo/visible_vehicle_updates/{plate}"},{"defaultPlaceholder":"","kafkaKey":"{direction}","kafkaTopic":"directions_vehicles_count","mqttTopic":"waterstream-fleet-demo/direction-stats/{direction}"},{"defaultPlaceholder":"","kafkaKey":"{plate}","kafkaTopic":"waterstream_fleet_vehicle","mqttTopic":"waterstream-fleet-demo/vehicle_create/{plate}"}]
+      plain-users.txt: |  
+        fleet-demo=AMBmceuch8pje9pjh

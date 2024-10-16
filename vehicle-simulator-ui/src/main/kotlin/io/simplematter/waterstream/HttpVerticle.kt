@@ -39,8 +39,11 @@ class HttpVerticle : CoroutineVerticle() {
         .put("mqttPort", config.mqttPort)
         .put("mqttUseSsl", config.mqttUseSsl)
         .put("mqttClientPrefix", config.mqttClientPrefix)
-        .put("mqttVisibleVehiclesTopicPrefix", config.mqttVisibleVehiclesTopicPrefix)
+        .put("mqttVehiclesTopicPrefix", config.mqttVehiclesTopicPrefix)
         .put("mqttDirectionStatsTopicPrefix", config.mqttDirectionStatsTopicPrefix)
+        .put("mapboxToken", config.mapboxToken)
+        .put("querySQLServiceUrl", config.querySQLServiceUrl)
+        .put("queryDocumentServiceUrl", config.queryDocumentServiceUrl)
 
       engine.render(data, "static/html/index.html"
       ) { res: AsyncResult<Buffer?> ->

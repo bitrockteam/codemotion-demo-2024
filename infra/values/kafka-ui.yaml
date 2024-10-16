@@ -1,0 +1,18 @@
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  path: /kafka-ui
+  pathType: Prefix
+  tls:
+    enabled: true
+    secretName: codemotion2024-key-pair
+  host: codemotion2024.bitrock.it
+
+envs:
+  config:
+    SERVER_SERVLET_CONTEXT_PATH: "/kafka-ui"
+    KAFKA_CLUSTERS_0_NAME: "LOCAL"
+    KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka.confluent.svc.cluster.local:9092"
+    AUTH_TYPE: "LOGIN_FORM"
+    SPRING_SECURITY_USER_NAME: admin
+    SPRING_SECURITY_USER_PASSWORD: codemotion2024!

@@ -1,0 +1,8 @@
+azure:
+  tenantId: dd5f82cc-d1e3-4e02-831c-038c577da315
+  subscriptionId: bc25e994-b666-4414-8ca7-2769a394008b
+  resourceGroup: codemotion2024
+  useManagedIdentityExtension: true
+  userAssignedIdentityID: ec545a90-afab-4413-b43f-df2469ac7bad
+
+provider: azure

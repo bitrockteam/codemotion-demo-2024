@@ -1,0 +1,226 @@
+resources:
+  - apiVersion: flink.apache.org/v1beta1
+    kind: FlinkDeployment
+    metadata:
+      name: fleet-direction-count
+    spec:
+      image: simoexpo/codemotion-2024-fleet-direction-counter:0.0.1
+      imagePullPolicy: Always
+      flinkVersion: v1_17
+      flinkConfiguration:
+        taskmanager.numberOfTaskSlots: "1"
+      serviceAccount: flink
+      jobManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+        podTemplate:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: pod-template
+          spec:
+            serviceAccount: flink
+            containers:
+              # Do not change the main container name
+              - name: flink-main-container
+                env:
+                  - name: KAFKA_BOOTSTRAP_SERVERS
+                    value: kafka.confluent.svc.cluster.local:9092
+                  - name: FLEET_INPUT_TOPIC
+                    value: waterstream_fleet_demo
+                  - name: DIRECTION_COUNT_OUTPUT_TOPIC
+                    value: directions_vehicles_count
+      taskManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+      job:
+        jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
+        parallelism: 2
+  - apiVersion: flink.apache.org/v1beta1
+    kind: FlinkDeployment
+    metadata:
+      name: fleet-vehicle-sink
+    spec:
+      image: simoexpo/codemotion-2024-fleet-vehicle-sink:0.0.1
+      imagePullPolicy: Always
+      flinkVersion: v1_17
+      flinkConfiguration:
+        taskmanager.numberOfTaskSlots: "1"
+      serviceAccount: flink
+      jobManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+        podTemplate:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: pod-template
+          spec:
+            serviceAccount: flink
+            containers:
+              # Do not change the main container name
+              - name: flink-main-container
+                env:
+                  - name: KAFKA_BOOTSTRAP_SERVERS
+                    value: kafka.confluent.svc.cluster.local:9092
+                  - name: VEHICLE_INPUT_TOPIC
+                    value: waterstream_fleet_vehicle
+                  - name: DATABASE_HOST
+                    value: codemotion2024.postgres.database.azure.com
+                  - name: DATABASE_PORT
+                    value: "5432"
+                  - name: DATABASE_NAME
+                    value: fleet_demo
+                  - name: DATABASE_USER
+                    value: fleet
+                  - name: DATABASE_PASSWORD
+                    value: {{ .Values | get "database.password" "password" }}
+      taskManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+      job:
+        jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
+        parallelism: 2
+  - apiVersion: flink.apache.org/v1beta1
+    kind: FlinkDeployment
+    metadata:
+      name: fleet-statistics-sink
+    spec:
+      image: simoexpo/codemotion-2024-fleet-statistics-sink:0.0.1
+      imagePullPolicy: Always
+      flinkVersion: v1_17
+      flinkConfiguration:
+        taskmanager.numberOfTaskSlots: "1"
+      serviceAccount: flink
+      jobManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+        podTemplate:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: pod-template
+          spec:
+            serviceAccount: flink
+            containers:
+              # Do not change the main container name
+              - name: flink-main-container
+                env:
+                  - name: KAFKA_BOOTSTRAP_SERVERS
+                    value: kafka.confluent.svc.cluster.local:9092
+                  - name: FLEET_INPUT_TOPIC
+                    value: waterstream_fleet_demo
+                  - name: DATABASE_HOST
+                    value: codemotion2024.postgres.database.azure.com
+                  - name: DATABASE_PORT
+                    value: "5432"
+                  - name: DATABASE_NAME
+                    value: fleet_demo
+                  - name: DATABASE_USER
+                    value: fleet
+                  - name: DATABASE_PASSWORD
+                    value: {{ .Values | get "database.password" "password" }}
+      taskManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+      job:
+        jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
+        parallelism: 2
+  - apiVersion: flink.apache.org/v1beta1
+    kind: FlinkDeployment
+    metadata:
+      name: fleet-location-sink
+    spec:
+      image: simoexpo/codemotion-2024-fleet-location-sink:0.0.1
+      imagePullPolicy: Always
+      flinkVersion: v1_17
+      flinkConfiguration:
+        taskmanager.numberOfTaskSlots: "1"
+      serviceAccount: flink
+      jobManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+        podTemplate:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: pod-template
+          spec:
+            serviceAccount: flink
+            containers:
+              # Do not change the main container name
+              - name: flink-main-container
+                env:
+                  - name: KAFKA_BOOTSTRAP_SERVERS
+                    value: kafka.confluent.svc.cluster.local:9092
+                  - name: FLEET_INPUT_TOPIC
+                    value: waterstream_fleet_demo
+                  - name: DATABASE_HOST
+                    value: codemotion2024.postgres.database.azure.com
+                  - name: DATABASE_PORT
+                    value: "5432"
+                  - name: DATABASE_NAME
+                    value: fleet_demo
+                  - name: DATABASE_USER
+                    value: fleet
+                  - name: DATABASE_PASSWORD
+                    value: {{ .Values | get "database.password" "password" }}
+                  - name: GEOLOCATION_URL
+                    value: https://api.mapbox.com/search/geocode/v6/reverse
+                  - name: API_KEY
+                    value: {{ .Values | get "mapbox.api-key" "api-key" }}
+                  - name: WINDOW_UPDATE_INTERVAL
+                    value: "1800"
+      taskManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+      job:
+        jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
+        parallelism: 2
+  - apiVersion: flink.apache.org/v1beta1
+    kind: FlinkDeployment
+    metadata:
+      name: fleet-visible-vehicle
+    spec:
+      image: simoexpo/codemotion-2024-fleet-visible-vehicle:0.0.1
+      imagePullPolicy: Always
+      flinkVersion: v1_17
+      flinkConfiguration:
+        taskmanager.numberOfTaskSlots: "1"
+      serviceAccount: flink
+      jobManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+        podTemplate:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: pod-template
+          spec:
+            serviceAccount: flink
+            containers:
+              # Do not change the main container name
+              - name: flink-main-container
+                env:
+                  - name: KAFKA_BOOTSTRAP_SERVERS
+                    value: kafka.confluent.svc.cluster.local:9092
+                  - name: FLEET_INPUT_TOPIC
+                    value: waterstream_fleet_demo
+                  - name: FLEET_VISIBLE_OUTPUT_TOPIC
+                    value: waterstream_fleet_visible_demo
+      taskManager:
+        resource:
+          memory: "2048m"
+          cpu: 1
+      job:
+        jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
+        parallelism: 2

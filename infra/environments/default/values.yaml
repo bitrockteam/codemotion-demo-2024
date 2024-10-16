@@ -1,0 +1,26 @@
+ingress:
+  enabled: true
+
+artifactory:
+  enabled: true
+
+external-dns:
+  enabled: true
+
+cert-manager:
+  enabled: true
+
+kafka:
+  enabled: true
+
+waterstream:
+  enabled: true
+
+flink:
+  enabled: true
+
+openrouteservice:
+  enabled: true
+
+fleet-demo:
+  enabled: true

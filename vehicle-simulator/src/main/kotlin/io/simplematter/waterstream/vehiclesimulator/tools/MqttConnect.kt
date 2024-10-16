@@ -16,6 +16,7 @@ class MqttConnect(
     private val vertx: Vertx,
     private val mqttUrl: String,
     private val mqttPort: Int,
+    private val mqttTlsEnabled: Boolean,
     private val clientId: String,
     private val username: String?,
     private val password: String?
@@ -30,7 +31,7 @@ class MqttConnect(
             if (existingClient != null && existingClient.isConnected) {
                 existingClient
             } else {
-                val options = MqttClientOptions().setClientId(clientId)
+                val options = MqttClientOptions().setClientId(clientId).setSsl(mqttTlsEnabled)
                 username?.let { options.setUsername(it) }
                 password?.let { options.setPassword(it) }
                 val c = MqttClient.create(vertx, options)

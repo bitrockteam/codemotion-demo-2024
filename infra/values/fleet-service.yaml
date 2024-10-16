@@ -1,0 +1,51 @@
+applicationName: fleet-service
+
+deployment:
+  image:
+    repository: simoexpo/codemotion-2024-vehicle-simulator
+    tag: 0.0.30
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+  resources:
+    limits:
+      cpu: 2
+      memory: 4096Mi
+    requests:
+      cpu: 500m
+      memory: 2048Mi
+  env:
+    ROUTING_URL:
+      value: http://openrouteservice.demo.svc.cluster.local:8080/ors/v2/directions/driving-hgv
+    VEHICLES_TOTAL_NUMBER:
+      value: "200"
+    VEHICLES_VISIBLE_NUMBER:
+      value: "15"
+    MQTT_HOST:
+      value: waterstream.waterstream.svc.cluster.local
+    MQTT_PORT:
+      value: "8883"
+    MQTT_TLS_ENABLED:
+      value: "true"
+    MQTT_TOPIC_PREFIX:
+      value: waterstream-fleet-demo/
+    KAFKA_BOOTSTRAP_SERVERS:
+      value: kafka.confluent.svc.cluster.local:9092
+    MONITORING_PORT:
+      value: "8091"
+    MONITORING_INCLUDE_JAVA_METRICS:
+      value: "true"
+    MQTT_USERNAME:
+      value: fleet-demo
+    MQTT_PASSWORD:
+      value: AMBmceuch8pje9pjh
+  volumeMounts:
+    tmp:
+      mountPath: /tmp
+      subPath: tmp
+  volumes:
+    tmp:
+      emptyDir:
+        sizeLimit: 1024Mi

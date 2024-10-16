@@ -1,0 +1,126 @@
+resources:
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: mqtt-sessions
+      namespace: confluent
+    spec:
+      name: mqtt_sessions
+      replicas: 1
+      partitionCount: 5
+      configs:
+        cleanup.policy: "compact"
+        min.compaction.lag.ms: "60000"
+        delete.retention.ms: "600000"
+      kafkaClusterRef:
+        name: kafka
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: mqtt-retained-messages
+      namespace: confluent
+    spec:
+      name: mqtt_retained_messages
+      replicas: 1
+      partitionCount: 5
+      configs:
+        cleanup.policy: "compact"
+        min.compaction.lag.ms: "60000"
+        delete.retention.ms: "600000"
+      kafkaClusterRef:
+        name: kafka
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: mqtt-connections
+      namespace: confluent
+    spec:
+      name: mqtt_connections
+      replicas: 1
+      partitionCount: 5
+      configs:
+        cleanup.policy: "delete"
+        delete.retention.ms: "600000"
+      kafkaClusterRef:
+        name: kafka
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: mqtt-messages
+      namespace: confluent
+    spec:
+      name: mqtt_messages
+      replicas: 1
+      partitionCount: 5
+      configs:
+        cleanup.policy: "delete"
+        delete.retention.ms: "86400000"
+      kafkaClusterRef:
+        name: kafka
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: waterstream-heartbeat
+      namespace: confluent
+    spec:
+      name: __waterstream_heartbeat
+      replicas: 1
+      partitionCount: 5
+      configs:
+        cleanup.policy: "delete"
+        delete.retention.ms: "300000"
+      kafkaClusterRef:
+        name: kafka
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: directions-vehicles-count
+      namespace: confluent
+    spec:
+      name: directions_vehicles_count
+      replicas: 1
+      partitionCount: 8
+      configs:
+        cleanup.policy: "compact"
+      kafkaClusterRef:
+        name: kafka
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: waterstream-fleet-demo
+      namespace: confluent
+    spec:
+      name: waterstream_fleet_demo
+      replicas: 1
+      partitionCount: 8
+      configs:
+        cleanup.policy: "delete"
+        delete.retention.ms: "2419200000"
+      kafkaClusterRef:
+        name: kafka
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: waterstream-fleet-vehicle
+      namespace: confluent
+    spec:
+      name: waterstream_fleet_vehicle
+      replicas: 1
+      partitionCount: 8
+      configs:
+        cleanup.policy: "compact"
+      kafkaClusterRef:
+        name: kafka
+  - apiVersion: platform.confluent.io/v1beta1
+    kind: KafkaTopic
+    metadata:
+      name: waterstream-fleet-visible-demo
+      namespace: confluent
+    spec:
+      name: waterstream_fleet_visible_demo
+      replicas: 1
+      partitionCount: 8
+      configs:
+        cleanup.policy: "delete"
+      kafkaClusterRef:
+        name: kafka

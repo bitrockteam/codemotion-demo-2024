@@ -1,0 +1,194 @@
+applicationName: openrouteservice
+
+deployment:
+  image:
+    repository: openrouteservice/openrouteservice
+    tag: v8.1.3
+    pullPolicy: IfNotPresent
+  ports:
+    - containerPort: 8082
+  initContainers:
+    download-osm-file:
+      image: curlimages/curl:latest
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          if [ ! -f /home/ors/files/italy-latest.osm.pbf ]; then
+            echo "Osm file not found, downloading..."
+            mkdir /home/ors/files
+            curl https://download.geofabrik.de/europe/italy-latest.osm.pbf -o /home/ors/files/italy-latest.osm.pbf
+          else
+            echo "Osm file already exists, skipping download."
+          fi
+      volumeMounts:
+        - name: openrouteservice-volume
+          mountPath: /home/ors
+  securityContext:
+    fsGroup: 2000
+  containerSecurityContext:
+    readOnlyRootFilesystem: false
+    runAsNonRoot: false
+  readinessProbe:
+    httpGet:
+      path: /ors/v2/health
+      port: metrics
+      scheme: HTTP
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  livenessProbe:
+    httpGet:
+      path: /ors/v2/health
+      port: metrics
+      scheme: HTTP
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  resources:
+    limits:
+      cpu: 2
+      memory: 9216Mi
+    requests:
+      cpu: 500m
+      memory: 6144Mi
+  env:
+    CONTAINER_LOG_LEVEL:
+      value: DEBUG
+    BUILD_GRAPHS:
+      value: "True"
+    ADDITIONAL_JAVA_OPTS:
+      value: "-Djava.awt.headless=true -server -XX:TargetSurvivorRatio=75 -XX:SurvivorRatio=64 -XX:MaxTenuringThreshold=3 -Xms6g -Xmx8g"
+  volumes:
+    openrouteservice-volume:
+      persistentVolumeClaim:
+        claimName: openrouteservice-pvc
+    app-config-volume:
+      configMap:
+        name: openrouteservice-config
+  volumeMounts:
+    openrouteservice-volume:
+      mountPath: /home/ors
+    app-config-volume:
+      mountPath: /home/ors/config/ors-config.yml
+      subPath: ors-config.yml
+
+persistence:
+  enabled: true
+  name: openrouteservice-pvc
+  storageClass: managed-csi
+
+service:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8082
+
+configMap:
+  enabled: true
+  files:
+    config:
+      ors-config.yml: |
+        ors:
+          endpoints:
+            isochrones:
+              allow_compute_area: true
+              attribution: openrouteservice.org, OpenStreetMap contributors
+              enabled: true
+              maximum_intervals: 10
+              maximum_locations: 2
+              maximum_range_distance:
+                - profiles: any
+                  value: 50000
+                - profiles: driving-hgv
+                  value: 1500000
+              maximum_range_time:
+                - profiles: any
+                  value: 18000
+                - profiles: driving-hgv
+                  value: 3600
+            matrix:
+              attribution: openrouteservice.org, OpenStreetMap contributors
+              enabled: true
+              maximum_visited_nodes: 100000
+              maximum_routes: 200
+            routing:
+              attribution: openrouteservice.org, OpenStreetMap contributors
+              enabled: true
+              gpx_author: openrouteservice
+              gpx_base_url: https://openrouteservice.org/
+              gpx_content_licence: LGPL 3.0
+              gpx_support_mail: support@openrouteservice.org
+              maximum_avoid_polygon_area: 200000000
+              maximum_avoid_polygon_extent: 20000
+          engine:
+            elevation:
+              cache_path: data/elevation_cache
+              provider: multi
+            init_threads: 1
+            preparation_mode: false
+            profile_default:
+              encoder_flags_size: 8
+              instructions: true
+              maximum_distance: 1500000
+              maximum_distance_round_trip_routes: 1500000
+              maximum_waypoints: 150
+            profiles:
+              hgv:
+                elevation: true
+                enabled: true
+                encoder_options:
+                  block_fords: false
+                  consider_elevation: true
+                  turn_costs: true
+                  use_acceleration: true
+                execution:
+                  methods:
+                    lm:
+                      active_landmarks: 6
+                ext_storages:
+                  HeavyVehicle:
+                    restrictions: true
+                  Tollways: { }
+                  WayCategory: { }
+                  WaySurfaceType: { }
+                preparation:
+                  methods:
+                    ch:
+                      enabled: true
+                      threads: 16
+                      weightings: fastest
+                    lm:
+                      enabled: true
+                      landmarks: 24
+                      threads: 16
+                      weightings: fastest,shortest
+                  min_network_size: 200
+                profile: driving-hgv
+            source_file: files/italy-latest.osm.pbf
+          messages:
+            - active: false
+              condition:
+                - request_service: routing
+                - request_profile: cycling-regular,cycling-mountain,cycling-road,cycling-electric
+                - request_preference: fastest
+              text: This message would be sent with every routing bike fastest request
+            - active: false
+              condition:
+                - api_format: geojson
+              text: This message would be sent with every request for geojson response
+            - active: false
+              condition:
+                - api_version: 1
+                - time_after: '2020-01-01T00:00:00Z'
+                - time_before: '2050-06-01T00:00:00Z'
+              text: This message would be sent with every request on API v1 from January 2020
+                until June 2050
+            - active: false
+              text: This message would be sent with every request
+
+

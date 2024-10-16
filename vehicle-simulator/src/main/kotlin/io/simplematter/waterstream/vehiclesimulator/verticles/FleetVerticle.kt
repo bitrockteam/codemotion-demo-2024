@@ -61,7 +61,7 @@ class FleetVerticle : CoroutineVerticle() {
             vertx.eventBus().publish(ClientMessage.Out.FleetComposition, JsonArray(list.map { it.toJson() }))
         })
 
-        vertx.setPeriodic(1000) {
+        vertx.setPeriodic(5000) {
             vertx.eventBus().publish(deployTick, serviceConfig.vehicles.totalNumber - vehiclesRegister.size())
         }
 
@@ -69,7 +69,7 @@ class FleetVerticle : CoroutineVerticle() {
             val missingVehicles = serviceConfig.vehicles.totalNumber - vehiclesRegister.size()
             if (missingVehicles > 0) {
                 val nVehicles = Random.nextInt(Math.min(100, missingVehicles))
-                log.debug("Deploying {} vehicles or {} missing", nVehicles, missingVehicles)
+                log.debug("Deploying {} vehicles of {} missing", nVehicles + 1, missingVehicles)
                 deployVehicleVerticles(serviceConfig, nVehicles)
             }
         })
@@ -85,6 +85,8 @@ class FleetVerticle : CoroutineVerticle() {
             val vehicleVerticleConfig = VehicleVerticle.Companion.VehicleConfig(
                 id = Random.nextInt().toString(),
                 plate = PlateIssuer.default.issuePlate(),
+                modelId = Modelssuer.default.getModel(),
+                color = Modelssuer.default.getColor(),
                 visible = visible,
                 mqttConfig = config.mqtt,
                 routingUrl = config.routing.url
@@ -104,6 +106,8 @@ class FleetVerticle : CoroutineVerticle() {
 //        return JsonUtils.fromVertxJson(value, Vehicle::class.java)
 
         val plate = value.getString("plate")
+        val modelId = value.getInteger("modelId")
+        val color = value.getString("color")
         val current = value.getJsonObject("current")
         val currentPoint = Point(current.getDouble("lat"), current.getDouble("lng"))
         val waypoint = value.getJsonObject("waypoint")
@@ -112,7 +116,7 @@ class FleetVerticle : CoroutineVerticle() {
         val updateTimestamp = value.getLong("updateTimestamp")
         val visible = value.getBoolean("visible")
         val id = value.getString("id")
-        return Vehicle(plate, currentPoint, waypointPoint, updateTimestamp, speed, visible, id)
+        return Vehicle(plate, modelId, color, currentPoint, waypointPoint, updateTimestamp, speed, visible, id)
     }
 }
 
