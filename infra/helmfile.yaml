@@ -124,6 +124,16 @@ releases:
       - values/waterstream.yaml
       - values/waterstream.yaml.gotmpl
 
+  - name: flink-resources
+    labels:
+      component: flink
+    namespace: flink
+    chart: bedag/raw
+    version: 2.0.0
+    condition: flink.enabled
+    values:
+      - values/flink-resources.yaml
+
   - name: flink
     labels:
       component: flink
@@ -131,6 +141,8 @@ releases:
     chart: flink/flink-kubernetes-operator
     version: 1.9.0
     condition: flink.enabled
+    needs:
+      - flink/flink-resources
 
   - name: flink-jobs
     labels:
@@ -139,6 +151,8 @@ releases:
     chart: bedag/raw
     version: 2.0.0
     condition: flink.enabled
+    needs:
+      - flink/flink-resources
     values:
       - values/flink-jobs.yaml.gotmpl
 

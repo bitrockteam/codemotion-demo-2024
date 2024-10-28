@@ -95,43 +95,56 @@ resources:
       flinkVersion: v1_17
       flinkConfiguration:
         taskmanager.numberOfTaskSlots: "1"
+        state.savepoints.dir: file:///flink-data/savepoints
+        state.checkpoints.dir: file:///flink-data/checkpoints
       serviceAccount: flink
       jobManager:
         resource:
           memory: "2048m"
           cpu: 0.5
-        podTemplate:
-          apiVersion: v1
-          kind: Pod
-          metadata:
-            name: pod-template
-          spec:
-            serviceAccount: flink
-            containers:
-              # Do not change the main container name
-              - name: flink-main-container
-                env:
-                  - name: KAFKA_BOOTSTRAP_SERVERS
-                    value: kafka.confluent.svc.cluster.local:9092
-                  - name: FLEET_INPUT_TOPIC
-                    value: waterstream_fleet_demo
-                  - name: DATABASE_HOST
-                    value: codemotion2024.postgres.database.azure.com
-                  - name: DATABASE_PORT
-                    value: "5432"
-                  - name: DATABASE_NAME
-                    value: fleet_demo
-                  - name: DATABASE_USER
-                    value: fleet
-                  - name: DATABASE_PASSWORD
-                    value: {{ .Values | get "database.admin-password" "password" }}
       taskManager:
         resource:
           memory: "2048m"
           cpu: 0.5
+      podTemplate:
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: pod-template
+        spec:
+          serviceAccount: flink
+          securityContext:
+            fsGroup: 2000
+            runAsUser: 2000
+          containers:
+            # Do not change the main container name
+            - name: flink-main-container
+              volumeMounts:
+              - mountPath: /flink-data
+                name: flink-volume
+              env:
+                - name: KAFKA_BOOTSTRAP_SERVERS
+                  value: kafka.confluent.svc.cluster.local:9092
+                - name: FLEET_INPUT_TOPIC
+                  value: waterstream_fleet_demo
+                - name: DATABASE_HOST
+                  value: codemotion2024.postgres.database.azure.com
+                - name: DATABASE_PORT
+                  value: "5432"
+                - name: DATABASE_NAME
+                  value: fleet_demo
+                - name: DATABASE_USER
+                  value: fleet
+                - name: DATABASE_PASSWORD
+                  value: {{ .Values | get "database.admin-password" "password" }}
+          volumes:
+          - name: flink-volume
+            persistentVolumeClaim:
+              claimName: flink-pvc
       job:
         jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
         parallelism: 2
+        upgradeMode: savepoint
   - apiVersion: flink.apache.org/v1beta1
     kind: FlinkDeployment
     metadata:
