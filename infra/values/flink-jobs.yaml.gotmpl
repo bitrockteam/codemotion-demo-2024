@@ -179,7 +179,7 @@ resources:
                   - name: API_KEY
                     value: {{ .Values | get "mapbox.api-key" "api-key" }}
                   - name: WINDOW_UPDATE_INTERVAL
-                    value: "2400"
+                    value: "7200"
       taskManager:
         resource:
           memory: "2048m"
