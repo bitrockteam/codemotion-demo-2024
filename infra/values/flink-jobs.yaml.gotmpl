@@ -114,8 +114,9 @@ resources:
         spec:
           serviceAccount: flink
           securityContext:
-            fsGroup: 2000
-            runAsUser: 2000
+            fsGroup: 9999
+            runAsUser: 9999
+            runAsGroup: 9999
           containers:
             # Do not change the main container name
             - name: flink-main-container
@@ -192,7 +193,7 @@ resources:
                   - name: API_KEY
                     value: {{ .Values | get "mapbox.api-key" "api-key" }}
                   - name: WINDOW_UPDATE_INTERVAL
-                    value: "2400"
+                    value: "7200"
       taskManager:
         resource:
           memory: "2048m"

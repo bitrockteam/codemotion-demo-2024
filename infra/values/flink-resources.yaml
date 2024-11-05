@@ -10,8 +10,8 @@ resources:
         app.kubernetes.io/part-of: application
     spec:
       accessModes:
-        - "ReadWriteOnce"
+        - "ReadWriteMany"
       resources:
         requests:
           storage: "1Gi"
-      storageClassName: "managed-csi"
+      storageClassName: "azurefile-csi"
