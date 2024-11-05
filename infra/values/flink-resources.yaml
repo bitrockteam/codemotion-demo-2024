@@ -1,0 +1,17 @@
+resources:
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: "flink-pvc"
+      namespace: flink
+      labels:
+        helm.sh/chart: application-2.3.2
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: application
+    spec:
+      accessModes:
+        - "ReadWriteMany"
+      resources:
+        requests:
+          storage: "1Gi"
+      storageClassName: "azurefile-csi"

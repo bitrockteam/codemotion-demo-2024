@@ -44,8 +44,8 @@ public class FleetStatisticsSinkJob {
 
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-//        env.enableCheckpointing(CHECKPOINT_INTERVAL_MS);
-//        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+        env.enableCheckpointing(CHECKPOINT_INTERVAL_MS);
+        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
 
         // fleet source - vehicles
         KafkaSource<Vehicle> fleetSource = KafkaSource.<Vehicle>builder()
