@@ -120,6 +120,11 @@ deployment:
     periodSeconds: 10
     successThreshold: 1
     failureThreshold: 3
+  tolerations:
+    - key: "kubernetes.azure.com/scalesetpriority"
+      operator: "Equal"
+      value: "spot"
+      effect: "NoSchedule"
 
 service:
   ports:

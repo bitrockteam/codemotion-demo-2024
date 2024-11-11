@@ -86,6 +86,8 @@ releases:
     namespace: confluent
     chart: confluentinc/confluent-for-kubernetes
     condition: kafka.enabled
+    values:
+      - values/confluent-operator.yaml
 
   - name: kafka-platform
     labels:
@@ -143,6 +145,8 @@ releases:
     condition: flink.enabled
     needs:
       - flink/flink-resources
+    values:
+      - values/flink-operator.yaml
 
   - name: flink-jobs
     labels:

@@ -10,6 +10,12 @@ resources:
         application: docker.io/confluentinc/cp-server:7.6.0
         init: confluentinc/confluent-init-container:2.8.0
       replicas: 1
+      podTemplate:
+        tolerations:
+          - key: "kubernetes.azure.com/scalesetpriority"
+            operator: "Equal"
+            value: "spot"
+            effect: "NoSchedule"
   - apiVersion: platform.confluent.io/v1beta1
     kind: Kafka
     metadata:
@@ -21,6 +27,12 @@ resources:
         application: confluentinc/cp-server:7.6.0
         init: confluentinc/confluent-init-container:2.8.0
       dataVolumeCapacity: 100Gi
+      podTemplate:
+        tolerations:
+          - key: "kubernetes.azure.com/scalesetpriority"
+            operator: "Equal"
+            value: "spot"
+            effect: "NoSchedule"
       dependencies:
         kRaftController:
           clusterRef:

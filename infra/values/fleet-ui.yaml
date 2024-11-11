@@ -45,6 +45,11 @@ deployment:
     tmp:
       emptyDir:
         sizeLimit: 1024Mi
+  tolerations:
+    - key: "kubernetes.azure.com/scalesetpriority"
+      operator: "Equal"
+      value: "spot"
+      effect: "NoSchedule"
 
 service:
   ports:

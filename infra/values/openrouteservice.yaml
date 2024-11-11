@@ -75,6 +75,11 @@ deployment:
     app-config-volume:
       mountPath: /home/ors/config/ors-config.yml
       subPath: ors-config.yml
+  tolerations:
+    - key: "kubernetes.azure.com/scalesetpriority"
+      operator: "Equal"
+      value: "spot"
+      effect: "NoSchedule"
 
 persistence:
   enabled: true

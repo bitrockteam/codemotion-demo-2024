@@ -8,6 +8,12 @@ ingress:
     secretName: codemotion2024-key-pair
   host: codemotion2024.bitrock.it
 
+tolerations:
+  - key: "kubernetes.azure.com/scalesetpriority"
+    operator: "Equal"
+    value: "spot"
+    effect: "NoSchedule"
+
 envs:
   config:
     SERVER_SERVLET_CONTEXT_PATH: "/kafka-ui"

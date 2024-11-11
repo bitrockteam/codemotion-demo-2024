@@ -21,6 +21,11 @@ resources:
             name: pod-template
           spec:
             serviceAccount: flink
+            tolerations:
+              - key: "kubernetes.azure.com/scalesetpriority"
+                operator: "Equal"
+                value: "spot"
+                effect: "NoSchedule"
             containers:
               # Do not change the main container name
               - name: flink-main-container
@@ -35,6 +40,13 @@ resources:
         resource:
           memory: "2048m"
           cpu: 0.5
+        podTemplate:
+          spec:
+            tolerations:
+              - key: "kubernetes.azure.com/scalesetpriority"
+                operator: "Equal"
+                value: "spot"
+                effect: "NoSchedule"
       job:
         jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
         parallelism: 2
@@ -60,6 +72,11 @@ resources:
             name: pod-template
           spec:
             serviceAccount: flink
+            tolerations:
+              - key: "kubernetes.azure.com/scalesetpriority"
+                operator: "Equal"
+                value: "spot"
+                effect: "NoSchedule"
             containers:
               # Do not change the main container name
               - name: flink-main-container
@@ -82,6 +99,13 @@ resources:
         resource:
           memory: "2048m"
           cpu: 0.5
+        podTemplate:
+          spec:
+            tolerations:
+              - key: "kubernetes.azure.com/scalesetpriority"
+                operator: "Equal"
+                value: "spot"
+                effect: "NoSchedule"
       job:
         jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
         parallelism: 2
@@ -113,6 +137,11 @@ resources:
           name: pod-template
         spec:
           serviceAccount: flink
+          tolerations:
+            - key: "kubernetes.azure.com/scalesetpriority"
+              operator: "Equal"
+              value: "spot"
+              effect: "NoSchedule"
           securityContext:
             fsGroup: 9999
             runAsUser: 9999
@@ -170,6 +199,11 @@ resources:
             name: pod-template
           spec:
             serviceAccount: flink
+            tolerations:
+              - key: "kubernetes.azure.com/scalesetpriority"
+                operator: "Equal"
+                value: "spot"
+                effect: "NoSchedule"
             containers:
               # Do not change the main container name
               - name: flink-main-container
@@ -198,6 +232,13 @@ resources:
         resource:
           memory: "2048m"
           cpu: 0.5
+        podTemplate:
+          spec:
+            tolerations:
+              - key: "kubernetes.azure.com/scalesetpriority"
+                operator: "Equal"
+                value: "spot"
+                effect: "NoSchedule"
       job:
         jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
         parallelism: 2
@@ -223,6 +264,11 @@ resources:
             name: pod-template
           spec:
             serviceAccount: flink
+            tolerations:
+              - key: "kubernetes.azure.com/scalesetpriority"
+                operator: "Equal"
+                value: "spot"
+                effect: "NoSchedule"
             containers:
               # Do not change the main container name
               - name: flink-main-container
@@ -237,6 +283,13 @@ resources:
         resource:
           memory: "2048m"
           cpu: 0.5
+        podTemplate:
+          spec:
+            tolerations:
+              - key: "kubernetes.azure.com/scalesetpriority"
+                operator: "Equal"
+                value: "spot"
+                effect: "NoSchedule"
       job:
         jarURI: local:///opt/flink/jars/flink-job-0.0.1.jar
         parallelism: 2

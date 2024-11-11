@@ -19,6 +19,11 @@ deployment:
     requests:
       cpu: 250m
       memory: 512Mi
+  tolerations:
+    - key: "kubernetes.azure.com/scalesetpriority"
+      operator: "Equal"
+      value: "spot"
+      effect: "NoSchedule"
   env:
     OPENAI_API_KEY:
       value: {{ .Values | get "openai.api-key" "api-key" }}
