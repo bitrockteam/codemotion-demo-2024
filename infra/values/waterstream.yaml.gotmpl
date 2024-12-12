@@ -7,3 +7,14 @@ configMap:
       waterstream.license: {{ .Values | get "waterstream.license" "MISSING_LICENSE" | toYaml | indent 6 }}
       tls.key: {{ .Values | get "waterstream.tls.key" "MISSING_KEY" | toYaml | indent 6 }}
       tls.crt: {{ .Values | get "waterstream.tls.crt" "MISSING_CERT" | toYaml | indent 6 }}
+
+deployment:
+  env:
+    KAFKA_BOOTSTRAP_SERVERS:
+      value: {{ .Values.eventhub.bootstrapServers }}
+    KAFKA_SECURITY_PROTOCOL:
+      value: {{ .Values.eventhub.securityProtocol }}
+    KAFKA_SASL_MECHANISM:
+      value: {{ .Values.eventhub.saslMechanism }}
+    KAFKA_SASL_JAAS_CONFIG:
+      value: {{ .Values.eventhub.saslJaasConfig }}

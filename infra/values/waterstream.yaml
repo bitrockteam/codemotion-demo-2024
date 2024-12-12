@@ -38,8 +38,8 @@ deployment:
         fieldRef:
           apiVersion: v1
           fieldPath: status.podIP
-    KAFKA_BOOTSTRAP_SERVERS:
-      value: "kafka.confluent.svc.cluster.local:9092"
+    KAFKA_COMPRESSION_TYPE:
+      value: "none"
     COROUTINES_THREADS:
       value: "16"
     KAFKA_TRANSACTIONAL_ID:
