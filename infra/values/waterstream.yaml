@@ -150,6 +150,7 @@ configMap:
         waterstream-fleet-demo/vehicle_updates/#,SUBSCRIBE,,ALLOW
         waterstream-fleet-demo/direction-stats/#,SUBSCRIBE,,ALLOW
         waterstream-fleet-demo/#,ALL,username=fleet-demo,ALLOW
+#        mqtt-testsuite/#,ALL,,ALLOW
       logback.xml: |
         <?xml version="1.0" encoding="UTF-8"?>
         <configuration>
