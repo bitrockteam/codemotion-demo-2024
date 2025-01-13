@@ -162,7 +162,7 @@ releases:
   - name: kafka-ui
     labels:
       component: kafka-ui
-    namespace: default
+    namespace: demo
     chart: kafka-ui/kafka-ui
     version: 1.4.8
     condition: kafka.enabled
