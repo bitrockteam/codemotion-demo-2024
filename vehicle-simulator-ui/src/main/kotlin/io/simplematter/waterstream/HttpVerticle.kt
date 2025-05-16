@@ -13,6 +13,7 @@ import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine
 import io.vertx.kotlin.core.http.listenAwait
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.dispatcher
+import java.util.UUID
 import kotlinx.coroutines.launch
 
 class HttpVerticle : CoroutineVerticle() {
@@ -31,8 +32,8 @@ class HttpVerticle : CoroutineVerticle() {
     router.get("/css/*").handler(cssStaticHandler)
     router.get("/img/*").handler(imgStaticHandler)
 
-
     router.get().handler { ctx: RoutingContext ->
+      val nonce = UUID.randomUUID().toString()
       val data = JsonObject()
         .put("mqttHost", config.mqttHost)
         .put("mqttPort", config.mqttPort)
@@ -44,11 +45,15 @@ class HttpVerticle : CoroutineVerticle() {
         .put("querySQLServiceUrl", config.querySQLServiceUrl)
         .put("queryDocumentServiceUrl", config.queryDocumentServiceUrl)
         .put("nVisibleVehicle", config.nVisibleVehicle)
+        .put("scriptNonce", nonce)
 
       engine.render(data, "static/html/index.html"
       ) { res: AsyncResult<Buffer?> ->
         if (res.succeeded()) {
-          ctx.response().end(res.result())
+          ctx.response().putHeader(
+            "Content-Security-Policy",
+            "script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https: http:; object-src 'none'; base-uri 'none';"
+          ).end(res.result())
         } else {
           ctx.fail(res.cause())
         }

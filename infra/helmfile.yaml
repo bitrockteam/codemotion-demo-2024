@@ -28,7 +28,7 @@ repositories:
   - name: cert-manager-crd
     url: https://wiremind.github.io/wiremind-helm-charts
   - name: flink
-    url: https://downloads.apache.org/flink/flink-kubernetes-operator-1.9.0/
+    url: https://downloads.apache.org/flink/flink-kubernetes-operator-1.10.0/
 
 ---
 releases:
@@ -140,7 +140,7 @@ releases:
       component: flink
     namespace: flink
     chart: flink/flink-kubernetes-operator
-    version: 1.9.0
+    version: 1.10.0
     condition: flink.enabled
     needs:
       - flink/flink-resources

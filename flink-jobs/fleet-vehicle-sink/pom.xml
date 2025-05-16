@@ -127,7 +127,7 @@
               <transformers>
                 <transformer
                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>it.bitrock.codemotion2024.FleetVehicleSinkJob</mainClass>
+                  <mainClass>it.bitrock.fleetdemo.FleetVehicleSinkJob</mainClass>
                 </transformer>
                 <transformer
                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>

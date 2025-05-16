@@ -23,27 +23,27 @@ apps:
 		helmfile apply -f infra/helmfile.yaml -l component=fleet-demo
 
 setupDockerBuildx:
-		docker buildx ls | grep codemotion-2024 &> /dev/null || docker buildx create --use --name codemotion-2024
+		docker buildx ls | grep fleet-demo &> /dev/null || docker buildx create --use --name fleet-demo
 
 packageVehicleSimulator:
 		cd vehicle-simulator/; ./gradlew clean shadowJar
 
 dockerVehicleSimulator: packageVehicleSimulator setupDockerBuildx
 		docker buildx build \
-			--builder codemotion-2024 \
+			--builder fleet-demo \
 			--push \
 			--platform linux/amd64,linux/arm64 \
-			-t simoexpo/codemotion-2024-vehicle-simulator:$(version) ./vehicle-simulator
+			-t simoexpo/fleet-demo-vehicle-simulator:$(version) ./vehicle-simulator
 
 packageVehicleSimulatorUI:
 		cd vehicle-simulator-ui/; ./gradlew clean shadowJar
 
 dockerVehicleSimulatorUI: packageVehicleSimulatorUI setupDockerBuildx
 		docker buildx build \
-			--builder codemotion-2024 \
+			--builder fleet-demo \
 			--push \
 			--platform linux/amd64,linux/arm64 \
-			-t simoexpo/codemotion-2024-vehicle-simulator-ui:$(version) ./vehicle-simulator-ui
+			-t simoexpo/fleet-demo-vehicle-simulator-ui:$(version) ./vehicle-simulator-ui
 
 packageFlinkJobDirection:
 		cd flink-jobs; ./mvnw -pl fleet-direction-counter package
@@ -62,38 +62,38 @@ packageFlinkJobVisible:
 
 dockerFlinkJobDirection: packageFlinkJobDirection
 		docker buildx build \
-			--builder codemotion-2024 \
+			--builder fleet-demo \
 			--push \
 			--platform linux/amd64,linux/arm64 \
-			-t simoexpo/codemotion-2024-fleet-direction-counter:$(version) ./flink-jobs/fleet-direction-counter
+			-t simoexpo/fleet-demo-fleet-direction-counter:$(version) ./flink-jobs/fleet-direction-counter
 
 dockerFlinkJobVehicle: packageFlinkJobVehicle
 		docker buildx build \
-			--builder codemotion-2024 \
+			--builder fleet-demo \
 			--push \
 			--platform linux/amd64,linux/arm64 \
-			-t simoexpo/codemotion-2024-fleet-vehicle-sink:$(version) ./flink-jobs/fleet-vehicle-sink
+			-t simoexpo/fleet-demo-fleet-vehicle-sink:$(version) ./flink-jobs/fleet-vehicle-sink
 
 dockerFlinkJobStats: packageFlinkJobStats
 		docker buildx build \
-			--builder codemotion-2024 \
+			--builder fleet-demo \
 			--push \
 			--platform linux/amd64,linux/arm64 \
-			-t simoexpo/codemotion-2024-fleet-statistics-sink:$(version) ./flink-jobs/fleet-statistics-sink
+			-t simoexpo/fleet-demo-fleet-statistics-sink:$(version) ./flink-jobs/fleet-statistics-sink
 
 dockerFlinkJobLocation: packageFlinkJobLocation
 		docker buildx build \
-			--builder codemotion-2024 \
+			--builder fleet-demo \
 			--push \
 			--platform linux/amd64,linux/arm64 \
-			-t simoexpo/codemotion-2024-fleet-location-sink:$(version) ./flink-jobs/fleet-location-sink
+			-t simoexpo/fleet-demo-fleet-location-sink:$(version) ./flink-jobs/fleet-location-sink
 
 dockerFlinkJobVisible: packageFlinkJobVisible
 		docker buildx build \
-			--builder codemotion-2024 \
+			--builder fleet-demo \
 			--push \
 			--platform linux/amd64,linux/arm64 \
-			-t simoexpo/codemotion-2024-fleet-visible-vehicle:$(version) ./flink-jobs/fleet-visible-vehicle
+			-t simoexpo	/fleet-demo-fleet-visible-vehicle:$(version) ./flink-jobs/fleet-visible-vehicle
 
 packageLlmQuery:
 	python3 -m venv llm-query/.venv
@@ -101,7 +101,7 @@ packageLlmQuery:
 
 dockerLlmQuery: packageLlmQuery setupDockerBuildx
 	docker buildx build \
-		--builder codemotion-2024 \
+		--builder fleet-demo \
 		--push \
 		--platform linux/amd64,linux/arm64 \
-		-t simoexpo/llm-query:$(version) ./llm-query
+		-t simoexpo/fleet-demo-llm-query:$(version) ./llm-query

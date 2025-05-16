@@ -1,7 +1,7 @@
-Codemotion 2024 Fleet Demo
+Bitrock Fleet Demo
 ======================
 
-Demo project for the Codemotion 2024 talk, forked and inspired by [Waterstream Demo](https://fleetdemo.waterstream.io/). See https://codemotion2024.bitrock.it to access the demo.
+Demo project for the Codemotion 2024 talk, forked and inspired by [Waterstream Demo](https://fleetdemo.waterstream.io/). See https://fleet-demo.bitrock.it to access the demo.
 
 Tools used:
 - [Kubernetes](https://kubernetes.io/) - open source system for automating deployment, scaling, and management of containerized applications.

@@ -2,7 +2,7 @@ applicationName: fleet-ui
 
 deployment:
   image:
-    repository: simoexpo/codemotion-2024-vehicle-simulator-ui
+    repository: simoexpo/fleet-demo-vehicle-simulator-ui
     tag: 0.0.1
     pullPolicy: Always
   securityContext:
@@ -24,19 +24,19 @@ deployment:
     MESSAGE_COUNT_PANEL_ADDRESS:
       value: "localhost"
     MQTT_HOST:
-      value: "codemotion2024.bitrock.it"
+      value: "fleet-demo.bitrock.it"
     MQTT_PORT:
       value: "8893"
     MQTT_USE_SSL:
       value: "true"
     N_VISIBLE_VEHICLE:
-      value: "twenty"
+      value: "20"
     MAPBOX_TOKEN:
       value: pk.eyJ1Ijoic2ltb2V4cG8iLCJhIjoiY20yNGN0bzFhMGZxYTJqc2pvYmNpaXdhdCJ9.IP9KSCBdu2Ph0UoAOz5BYg
     QUERY_SQL_SERVICE_URL:
-      value: "https://codemotion2024.bitrock.it/llm-query/query/sql"
+      value: "https://fleet-demo.bitrock.it/llm-query/query/sql"
     QUERY_DOC_SERVICE_URL:
-      value: "https://codemotion2024.bitrock.it/llm-query/query/document"
+      value: "https://fleet-demo.bitrock.it/llm-query/query/document"
   volumeMounts:
     tmp:
       mountPath: /tmp
@@ -62,11 +62,11 @@ ingress:
   enabled: true
   ingressClassName: nginx
   tls:
-    - secretName: codemotion2024-key-pair
+    - secretName: fleet-demo-key-pair
       hosts:
-        - codemotion2024.bitrock.it
+        - fleet-demo.bitrock.it
   hosts:
-    - host: codemotion2024.bitrock.it
+    - host: fleet-demo.bitrock.it
       paths:
         - path: /
           pathType: Prefix

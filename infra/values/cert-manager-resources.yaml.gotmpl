@@ -2,19 +2,19 @@ resources:
   - apiVersion: cert-manager.io/v1
     kind: ClusterIssuer
     metadata:
-      name: codemotion2024
+      name: fleet-demo
     spec:
       acme:
         email: simone.esposito@bitrock.it
         server: https://acme-v02.api.letsencrypt.org/directory
         privateKeySecretRef:
-          name: codemotion2024-account-key
+          name: fleet-demo-account-key
         solvers:
           - dns01:
               azureDNS:
                 subscriptionID: {{ .Values | get "azure.subscriptionId" "subscriptionId" }}
                 resourceGroupName: codemotion2024
-                hostedZoneName: codemotion2024.bitrock.it
+                hostedZoneName: fleet-demo.bitrock.it
                 # Azure Cloud Environment, default to AzurePublicCloud
                 environment: AzurePublicCloud
                 # optional, only required if node pools have more than 1 managed identity assigned
@@ -26,28 +26,28 @@ resources:
   - apiVersion: cert-manager.io/v1
     kind: Certificate
     metadata:
-      name: codemotion2024
+      name: fleet-demo
       namespace: demo
     spec:
-      secretName: codemotion2024-key-pair
+      secretName: fleet-demo-key-pair
       issuerRef:
-        name: codemotion2024
+        name: fleet-demo
         kind: ClusterIssuer
-      commonName: "codemotion2024.bitrock.it"
+      commonName: "fleet-demo.bitrock.it"
       dnsNames:
-        - "codemotion2024.bitrock.it"
-        - "*.codemotion2024.bitrock.it"
+        - "fleet-demo.bitrock.it"
+        - "*.fleet-demo.bitrock.it"
   - apiVersion: cert-manager.io/v1
     kind: Certificate
     metadata:
-      name: codemotion2024
+      name: fleet-demo
       namespace: waterstream
     spec:
-      secretName: codemotion2024-key-pair
+      secretName: fleet-demo-key-pair
       issuerRef:
-        name: codemotion2024
+        name: fleet-demo
         kind: ClusterIssuer
-      commonName: "codemotion2024.bitrock.it"
+      commonName: "fleet-demo.bitrock.it"
       dnsNames:
-        - "codemotion2024.bitrock.it"
-        - "*.codemotion2024.bitrock.it"
+        - "fleet-demo.bitrock.it"
+        - "*.fleet-demo.bitrock.it"

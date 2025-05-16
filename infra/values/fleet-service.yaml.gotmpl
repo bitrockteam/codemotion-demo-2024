@@ -2,7 +2,7 @@ applicationName: fleet-service
 
 deployment:
   image:
-    repository: simoexpo/codemotion-2024-vehicle-simulator
+    repository: simoexpo/fleet-demo-vehicle-simulator
     tag: 0.0.1
     pullPolicy: Always
   securityContext:
@@ -20,7 +20,7 @@ deployment:
     ROUTING_URL:
       value: http://openrouteservice.demo.svc.cluster.local:8080/ors/v2/directions/driving-hgv
     VEHICLES_TOTAL_NUMBER:
-      value: "200"
+      value: "500"
     VEHICLES_VISIBLE_NUMBER:
       value: "20"
     MQTT_HOST:

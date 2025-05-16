@@ -2,7 +2,7 @@ applicationName: llm-query
 
 deployment:
   image:
-    repository: simoexpo/llm-query
+    repository: simoexpo/fleet-demo-llm-query
     tag: 0.0.1
     pullPolicy: Always
   ports:
@@ -86,11 +86,11 @@ ingress:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
   tls:
-    - secretName: codemotion2024-key-pair
+    - secretName: fleet-demo-key-pair
       hosts:
-        - codemotion2024.bitrock.it
+        - fleet-demo.bitrock.it
   hosts:
-    - host: codemotion2024.bitrock.it
+    - host: fleet-demo.bitrock.it
       paths:
         - path: /llm-query/(.+)
           pathType: Prefix
