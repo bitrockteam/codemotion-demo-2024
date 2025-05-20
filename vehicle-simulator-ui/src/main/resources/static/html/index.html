@@ -243,7 +243,7 @@
             icon: truckIcon
         })
             .addTo(map)
-            .bindPopup("Truck " + vehicle.plate + '<br />' + 'Speed: ' + Math.trunc(vehicle.speed) + ' km/h');
+            .bindPopup("Plate " + vehicle.plate + '<br />' + 'Speed: ' + Math.trunc(vehicle.speed) + ' km/h');
 
         marker.addEventListener("click", function () {
             plateToFollow = vehicle.plate;
@@ -358,7 +358,7 @@
                         marker = registry.get(vehicle.plate);
                         if (marker != null) {
                             marker.setLatLng(L.latLng(vehicle.current.lat, vehicle.current.lng));
-                            marker.setPopupContent('Truck ' + vehicle.plate + '<br />' + 'Speed: ' + Math.trunc(vehicle.speed) + ' km/h');
+                            marker.setPopupContent('Plate ' + vehicle.plate + '<br />' + 'Speed: ' + Math.trunc(vehicle.speed) + ' km/h');
                         }
                     } else {
                         if (registry.size === maxNumberOfMarker || Date.now() - windowStart > 5000) {
