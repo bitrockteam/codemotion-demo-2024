@@ -95,7 +95,7 @@ resources:
       partitionCount: 8
       configs:
         cleanup.policy: "delete"
-        delete.retention.ms: "2419200000"
+        delete.retention.ms: "604800000"
       kafkaClusterRef:
         name: kafka
   - apiVersion: platform.confluent.io/v1beta1
