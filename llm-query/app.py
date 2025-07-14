@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_core.messages import SystemMessage
 from langchain_core.messages import HumanMessage
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from langchain.agents.agent_toolkits import create_retriever_tool
 from langchain_community.vectorstores import FAISS
@@ -52,6 +53,7 @@ app = Flask(__name__)
 app.logger.info('Initializing llm agent...')
 
 db = SQLDatabase.from_uri(f"postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
+memory = MemorySaver()
 llm = ChatOpenAI(model="gpt-4o", api_key=api_key)
 toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 tools = toolkit.get_tools()
@@ -83,7 +85,7 @@ retriever_tool = create_retriever_tool(
 
 system_message = SystemMessage(content=sql_prefix.format(table_names=db.get_usable_table_names()))
 tools.append(retriever_tool)
-agent = create_react_agent(llm, tools, state_modifier=system_message)
+agent = create_react_agent(llm, tools, state_modifier=system_message, checkpointer=memory)
 
 rb_rag_client = RadicalbitRagClient(
     host=rb_platform_host,
@@ -105,11 +107,14 @@ def health_check():
 
 @app.route("/query/sql", methods=['POST'])
 def query_sql():
+    session_id = request.json.get('sessionId')
     query_string = request.json.get('query')
     app.logger.info(f'Received query: {query_string}')
+    config = {"configurable": {"thread_id": session_id}}
     if query_string:
         result = agent.stream(
-            {"messages": [HumanMessage(content=query_string)]}
+            {"messages": [HumanMessage(content=query_string)]},
+            config
         )
         list_result = list(result)
         try:

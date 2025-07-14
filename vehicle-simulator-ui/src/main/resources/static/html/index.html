@@ -406,6 +406,8 @@
 
 <script th:attr="nonce=${scriptNonce}">
 
+    const sessionId = crypto.randomUUID();
+
     function sendQuerySql(messageContent) {
         if (messageContent.length > 0) {
             return fetch("[[${querySQLServiceUrl}]]", {
@@ -413,7 +415,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({query: messageContent})
+                body: JSON.stringify({query: messageContent, sessionId: sessionId})
             })
                 .then(response => response.json())
                 .then(data => {
